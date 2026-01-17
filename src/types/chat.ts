@@ -1,36 +1,84 @@
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: number;
-}
+export type ChatStatus = 'submitted' | 'streaming' | 'error' | 'ready';
 
-export interface AssistantResponseStep {
-  id: string;
-  status: "thinking" | "active" | "completed";
+export type FileUIPart = {
+  type: 'file';
+  url: string;
+  mediaType?: string;
+  filename?: string;
+  id?: string;
+};
+
+export type ToolState =
+  | 'input-streaming'
+  | 'input-available'
+  | 'approval-requested'
+  | 'approval-responded'
+  | 'output-available'
+  | 'output-error'
+  | 'output-denied';
+
+export type ToolUIPart = {
+  type: 'tool-invocation';
+  toolCallId: string;
+  toolName: string;
+  state: ToolState;
+  input?: any;
+  output?: any;
+  errorText?: string;
+};
+
+export type TextUIPart = {
+  type: 'text';
   text: string;
-  timestamp: number;
-}
+};
 
-export interface AssistantResponse {
-  id: string;
-  steps: AssistantResponseStep[];
-  results: {
-    columns: Array<{ name: string; type?: string }>;
-    rows: Array<Record<string, unknown>>;
-    sql?: string | null;
-    totalRows: number;
-  } | null;
-  interpretation: string;
-  error: string | null;
-  timestamp: number;
-}
+export type ReasoningUIPart = {
+  type: 'reasoning';
+  text: string;
+};
 
-export interface ChatSession {
+export type SourceUIPart = {
+  type: 'source-url';
+  url: string;
+  title?: string;
+};
+
+export type ImageUIPart = {
+  type: 'image';
+  image: string; // base64 or url
+  mimeType?: string;
+};
+
+export type UIMessagePart =
+  | TextUIPart
+  | ToolUIPart
+  | ReasoningUIPart
+  | SourceUIPart
+  | ImageUIPart
+  | FileUIPart;
+
+export type UIMessage = {
   id: string;
-  title: string;
-  createdAt: number;
-  updatedAt: number;
-  messages: any[];
-  model?: string;
-}
+  role: 'user' | 'assistant' | 'system' | 'data';
+  parts: UIMessagePart[];
+  createdAt?: Date;
+  content?: string; // For compatibility if needed, but parts are preferred
+};
+
+export type LanguageModelUsage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  reasoningTokens?: number;
+  cachedInputTokens?: number;
+};
+
+export type Experimental_GeneratedImage = {
+    image?: string; // base64
+    base64?: string;
+    uint8Array?: Uint8Array;
+    mimeType?: string;
+    mediaType?: string;
+};

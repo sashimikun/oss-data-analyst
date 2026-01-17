@@ -43,9 +43,7 @@
     "initDatabase": "mkdir -p data && tsx scripts/init-database.ts && tsx scripts/seed-database.ts"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.42",
-    "@ai-sdk/provider-utils": "^3.0.10",
-    "@ai-sdk/react": "^3.0.35",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.11",
     "@heroicons/react": "^2.1.5",
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.0.2",
@@ -80,12 +78,8 @@
     "@slack/bolt": "^4.4.0",
     "@tailwindcss/postcss": "^4.1.15",
     "@types/pg": "^8.15.5",
-    "@vercel/functions": "^3.1.0",
-    "@vercel/sandbox": "^1.1.1",
     "@vercel/slack-bolt": "^1.0.2",
     "@xyflow/react": "^12.9.0",
-    "ai": "^6.0.33",
-    "bash-tool": "^1.3.4",
     "canvas": "^3.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -40,7 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { ChatStatus, FileUIPart } from "ai";
+import type { ChatStatus, FileUIPart } from "@/types/chat";
 import {
   ImageIcon,
   Loader2Icon,

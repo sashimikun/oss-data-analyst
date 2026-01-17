@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
-import type { LanguageModelUsage } from "ai";
+import type { LanguageModelUsage } from "@/types/chat";
 import { type ComponentProps, createContext, useContext } from "react";
 import { estimateCost, type ModelId } from "tokenlens";
 

@@ -1,22 +1,25 @@
-import type { UIMessage } from "ai";
-import { stepCountIs, convertToModelMessages, streamText, tool } from "ai";
+import { query, tool, createSdkMcpServer } from "@anthropic-ai/claude-agent-sdk";
 import z from "zod";
 import { ExecuteSQL } from "./tools/execute-sqlite";
-import { createSandbox } from "./tools/sandbox";
-import { createSemanticBashTools } from "./tools/shell";
+import path from "path";
 
-const FinalizeReportSchema = z.object({
+const FinalizeReportSchema = {
   sql: z.string(),
   csvResults: z.string(),
   narrative: z.string().min(1),
-});
+};
 
-const FinalizeReport = tool({
-  description: "Finalize the report with SQL, CSV results, and narrative.",
-  inputSchema: FinalizeReportSchema,
-  outputSchema: FinalizeReportSchema,
-  execute: async (input) => input,
-});
+const FinalizeReport = tool(
+  "FinalizeReport",
+  "Finalize the report with SQL, CSV results, and narrative.",
+  FinalizeReportSchema,
+  async (input) => {
+    return {
+      content: [{ type: "text", text: JSON.stringify(input) }],
+      isError: false,
+    };
+  }
+);
 
 const SYSTEM_PROMPT = `You are an expert data analyst AI. You answer questions by exploring a semantic layer (YAML schema files), building SQL queries for SQLite, executing them, and presenting results.
 
@@ -62,90 +65,40 @@ Call FinalizeReport with:
 
 export type Phase = "planning" | "building" | "execution" | "reporting";
 
+const mcpServer = createSdkMcpServer({
+  name: "data-analyst-tools",
+  version: "1.0.0",
+  tools: [ExecuteSQL, FinalizeReport],
+});
+
 export async function runAgent({
-  messages,
+  message,
+  sessionId,
   model = "anthropic/claude-opus-4.5",
 }: {
-  messages: UIMessage[];
+  message: string;
+  sessionId?: string;
   model?: string;
 }) {
-  const { sandbox, stop } = await createSandbox();
-  const { tools: bashTools } = await createSemanticBashTools(sandbox);
-
-  const result = streamText({
-    model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
-    stopWhen: [
-      (ctx) =>
-        ctx.steps.some((step) =>
-          step.toolResults?.some((t) => t.toolName === "FinalizeReport")
-        ),
-      stepCountIs(100),
-    ],
-    tools: {
-      bash: bashTools.bash,
-      ExecuteSQL,
-      FinalizeReport,
-    },
-    onFinish: async () => {
-      await stop();
+  const result = query({
+    prompt: message,
+    options: {
+      model,
+      systemPrompt: SYSTEM_PROMPT,
+      resume: sessionId,
+      tools: ["Bash"], // Use built-in Bash tool
+      mcpServers: {
+        "data-analyst-tools": mcpServer,
+      },
+      additionalDirectories: [path.join(process.cwd(), "src", "semantic")],
+      sandbox: {
+        enabled: true,
+        autoAllowBashIfSandboxed: true,
+      },
+      permissionMode: "bypassPermissions",
+      allowDangerouslySkipPermissions: true,
     },
   });
 
   return result;
 }
-
-/**
- * Runs the agent and returns both the result and the sandbox for further use.
- * Caller is responsible for stopping the sandbox when done.
- */
-export async function runAgentWithSandbox({
-  messages,
-  model = "anthropic/claude-opus-4.5",
-}: {
-  messages: UIMessage[];
-  model?: string;
-}) {
-  const { sandbox, stop } = await createSandbox();
-  const { tools: bashTools } = await createSemanticBashTools(sandbox);
-
-  const result = streamText({
-    model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
-    stopWhen: [
-      (ctx) =>
-        ctx.steps.some((step) =>
-          step.toolResults?.some((t) => t.toolName === "FinalizeReport")
-        ),
-      stepCountIs(100),
-    ],
-    tools: {
-      bash: bashTools.bash,
-      ExecuteSQL,
-      FinalizeReport,
-    },
-  });
-
-  return { result, sandbox, stop };
-}
-
-type FinalizeReportOutput = z.infer<typeof FinalizeReportSchema>;
-
-export const extractFinalizeReport = (result: {
-  toolResults: Array<{ toolName: string; output?: unknown }>;
-}) => {
-  const finalResult = result.toolResults.find(
-    (t) => t.toolName === "FinalizeReport"
-  );
-
-  const output = (finalResult?.output || {}) as Partial<FinalizeReportOutput>;
-
-  return {
-    hasFinalResult: finalResult != null,
-    sql: output.sql,
-    csvResults: output.csvResults,
-    narrative: output.narrative,
-  };
-};

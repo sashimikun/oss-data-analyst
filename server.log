@@ -1,0 +1,23 @@
+
+> oss-data-analyst@0.1.0 start
+> next start
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 2.9s
+Stream error: Error: Claude Code process exited with code 1
+    at cm.getProcessExitError (.next/server/app/api/chat/route.js:11:5083)
+    at ChildProcess.c (.next/server/app/api/chat/route.js:11:7543)
+Error: failed to pipe response
+    at j (.next/server/chunks/7679.js:4:26853)
+    at async g (.next/server/app/api/chat/route.js:1:997)
+    at async o (.next/server/app/api/chat/route.js:107:3601)
+    at async f (.next/server/app/api/chat/route.js:107:4429)
+    at async uX (.next/server/app/api/chat/route.js:107:5552) {
+  [cause]: Error: Claude Code process exited with code 1
+      at cm.getProcessExitError (.next/server/app/api/chat/route.js:11:5083)
+      at ChildProcess.c (.next/server/app/api/chat/route.js:11:7543)
+}

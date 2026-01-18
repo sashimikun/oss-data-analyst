@@ -131,6 +131,7 @@
   "packageManager": "pnpm@8.15.0",
   "devDependencies": {
     "@ngrok/ngrok": "^1.5.2",
+    "@playwright/test": "^1.57.0",
     "@slack/cli-hooks": "^1.2.1",
     "@types/better-sqlite3": "^7.6.13",
     "@types/js-yaml": "^4.0.9",

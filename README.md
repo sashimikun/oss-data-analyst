@@ -129,6 +129,33 @@ The agent reads these files at runtime to understand your schema.
 
 No code changes required—the sandbox approach means schema changes are picked up at runtime.
 
+## GitHub Ingestion
+
+You can import data from any public GitHub repository to analyze issues, pull requests, and repository stats.
+
+### Setup
+
+1. (Optional) Set `GITHUB_TOKEN` in `.env.local` to increase API rate limits.
+2. Run the importer:
+
+```bash
+GITHUB_REPO=owner/repo pnpm importGithub
+```
+
+Example:
+
+```bash
+GITHUB_REPO=vercel-labs/agent-browser pnpm importGithub
+```
+
+### Example Questions (agent-browser)
+
+- "How many open issues does agent-browser have?"
+- "Top issue labels by count?"
+- "Median time-to-close for issues?"
+- "Top PR authors by merged PRs?"
+- "PR merge rate over time (weekly)?"
+
 ## Troubleshooting
 
 **Database Not Found**

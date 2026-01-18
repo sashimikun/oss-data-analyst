@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
     return result.toUIMessageStreamResponse();
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error("❌ API Error:", errorMessage); // Added logging
+    if (err instanceof Error && err.stack) {
+      console.error(err.stack);
+    }
     return new Response(JSON.stringify({ ok: false, error: errorMessage }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

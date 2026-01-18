@@ -1,0 +1,95 @@
+entities:
+  - name: Company
+    grain: one row per company record
+    description: >-
+      Company information including industry classification, size metrics, and location data for analyzing business demographics and organizational characteristics.
+    fields: ['id', 'name', 'industry', 'employee_count', 'revenue', 'founded_year', 'country', 'city', 'created_at']
+    example_questions:
+      - How many companies are in each industry?
+      - What is the average revenue by industry?
+      - Which companies have the most employees?
+      - Show me companies founded after 2010
+      - What is the geographic distribution of companies?
+    use_cases: >-
+      Market segmentation and industry analysis
+      Company size and revenue distribution reporting
+      Geographic footprint visualization
+
+  - name: People
+    grain: one row per person record
+    description: >-
+      Employee records with demographic information, job details, and compensation data for workforce analysis and human capital reporting.
+    fields: ['id', 'first_name', 'last_name', 'email', 'company_id', 'job_title', 'department', 'salary', 'hire_date', 'birth_date', 'created_at']
+    example_questions:
+      - What is the average salary by department?
+      - How many employees work in each company?
+      - Who are the highest paid employees?
+      - What is the average tenure of employees?
+      - Show me the distribution of employees by job title
+    use_cases: >-
+      Workforce composition and headcount analysis
+      Compensation benchmarking and equity reviews
+      Department staffing and organizational structure
+
+  - name: Accounts
+    grain: one row per customer account record
+    description: >-
+      Customer account records with contract details, revenue metrics, and relationship information for analyzing customer health and commercial performance.
+    fields: ['id', 'account_number', 'company_id', 'account_manager_id', 'status', 'account_type', 'monthly_value', 'total_revenue', 'contract_start_date', 'contract_end_date', 'created_at']
+    example_questions:
+      - What is the total monthly recurring revenue?
+      - How many accounts are Active vs Inactive?
+      - Which account managers manage the most accounts?
+      - Show me the top 10 accounts by total revenue
+      - What is the average contract length?
+    use_cases: >-
+      Revenue reporting and forecasting
+      Account health monitoring and churn analysis
+      Account manager performance and territory planning
+
+  - name: GitHub Repos
+    grain: one row per repository
+    description: >-
+      GitHub repository metadata including stars, forks, and open issue counts.
+    fields: ['repo_full_name', 'stars', 'forks', 'open_issues', 'default_branch', 'updated_at']
+    example_questions:
+      - Which repo has the most stars?
+      - How many forks does the repo have?
+      - What is the default branch?
+    use_cases: >-
+      Repository popularity analysis
+      Monitoring repo health and activity
+
+  - name: GitHub Issues
+    grain: one row per issue
+    description: >-
+      GitHub issues (and pull requests) with status, author, and timing information.
+    fields: ['id', 'number', 'title', 'state', 'author', 'repo', 'labels_json', 'is_pr', 'created_at', 'closed_at']
+    example_questions:
+      - How many open issues are there?
+      - Who filed the most issues?
+      - What are the most common labels?
+      - What is the average time to close an issue?
+      - Show me issues created in the last month
+      - Which issues have been open the longest?
+    use_cases: >-
+      Issue tracking and triage
+      Contributor activity analysis
+      Bug report analysis
+
+  - name: GitHub Pulls
+    grain: one row per pull request
+    description: >-
+      GitHub pull requests with status, author, and merge timing.
+    fields: ['id', 'number', 'title', 'state', 'author', 'repo', 'created_at', 'closed_at', 'merged_at']
+    example_questions:
+      - How many PRs were merged this week?
+      - Who are the top PR contributors?
+      - What is the average time to merge a PR?
+      - How many open PRs are there?
+      - What is the merge rate?
+      - Show me PRs merged by specific author
+    use_cases: >-
+      Pull request velocity analysis
+      Contribution tracking
+      Code review throughput

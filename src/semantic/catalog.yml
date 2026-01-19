@@ -46,3 +46,46 @@ entities:
       Revenue reporting and forecasting
       Account health monitoring and churn analysis
       Account manager performance and territory planning
+
+  - name: GitHubRepos
+    grain: one row per repository
+    description: >-
+      GitHub repository metadata including stars, forks, and open issues counts for analyzing project popularity and activity.
+    fields: ['repo_full_name', 'stars', 'forks', 'open_issues_count', 'default_branch', 'updated_at']
+    example_questions:
+      - How many stars does the repo have?
+      - Which repo has the most forks?
+      - How many open issues does the repo have?
+    use_cases: >-
+      Project popularity tracking
+      Repository activity monitoring
+
+  - name: GitHubIssues
+    grain: one row per issue
+    description: >-
+      GitHub issues tracking bugs, enhancements, and tasks with details on state, author, labels, and lifecycle timing.
+    fields: ['repo', 'id', 'number', 'title', 'state', 'author', 'labels_json', 'is_pr', 'created_at', 'closed_at']
+    example_questions:
+      - How many open issues are there?
+      - Who are the top issue authors?
+      - What are the most common labels?
+      - What is the median time to close an issue?
+      - Show me issues created in the last month
+    use_cases: >-
+      Issue triage and backlog management
+      Contributor activity analysis
+      Issue resolution time tracking
+
+  - name: GitHubPulls
+    grain: one row per pull request
+    description: >-
+      GitHub pull requests showing code contributions, merge status, and author information for analyzing development velocity and contributions.
+    fields: ['repo', 'id', 'number', 'title', 'state', 'author', 'merged_at', 'created_at', 'closed_at']
+    example_questions:
+      - How many PRs have been merged?
+      - Who are the top PR contributors?
+      - What is the PR merge rate over time?
+      - Who has the most open PRs?
+    use_cases: >-
+      Contribution tracking
+      Development velocity analysis

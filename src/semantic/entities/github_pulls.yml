@@ -1,0 +1,74 @@
+name: GitHubPulls
+type: fact_table
+table: main.github_pulls
+grain: one row per pull request
+description: GitHub pull requests with details on state, author, and merge status.
+common_questions:
+  - How many PRs are merged?
+  - Who are the top PR contributors?
+  - What is the PR merge rate?
+
+dimensions:
+  - name: repo
+    sql: repo
+    type: string
+    description: Repository name
+
+  - name: id
+    sql: id
+    type: number
+    description: PR ID
+
+  - name: number
+    sql: number
+    type: number
+    description: PR number
+
+  - name: title
+    sql: title
+    type: string
+    description: PR title
+
+  - name: state
+    sql: state
+    type: string
+    description: State of the PR (open/closed)
+
+  - name: author
+    sql: author
+    type: string
+    description: Username of the PR author
+
+time_dimensions:
+  - name: created_at
+    sql: created_at
+    type: time
+    description: Timestamp when the PR was created
+
+  - name: closed_at
+    sql: closed_at
+    type: time
+    description: Timestamp when the PR was closed
+
+  - name: merged_at
+    sql: merged_at
+    type: time
+    description: Timestamp when the PR was merged
+
+measures:
+  - name: count
+    sql: id
+    type: count_distinct
+    description: Total number of PRs
+
+  - name: merged_count
+    sql: CASE WHEN merged_at IS NOT NULL THEN 1 ELSE 0 END
+    type: sum
+    description: Number of merged PRs
+
+joins:
+  - target_entity: GitHubRepos
+    relationship: many_to_one
+    join_columns:
+      from: repo
+      to: repo_full_name

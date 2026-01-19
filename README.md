@@ -75,6 +75,17 @@ pnpm initDatabase
 
 Creates a SQLite database with sample data (Companies, People, Accounts).
 
+### Import GitHub Data
+
+To analyze a GitHub repository:
+
+```bash
+# Optional: Set GITHUB_TOKEN for higher rate limits
+GITHUB_REPO=vercel-labs/agent-browser pnpm importGithub
+```
+
+This imports repository metadata, issues, and pull requests into the database.
+
 ### Run
 
 ```bash
@@ -110,6 +121,13 @@ The agent reads these files at runtime to understand your schema.
 - "What is the average salary by department?"
 - "Show me the top 5 accounts by monthly value"
 - "Which companies have the most employees?"
+
+**GitHub Analysis:**
+- "How many open issues does agent-browser have?"
+- "Top issue labels by count?"
+- "Median time-to-close for issues?"
+- "Top PR authors by merged PRs?"
+- "PR merge rate over time (weekly)?"
 
 ## Architecture
 

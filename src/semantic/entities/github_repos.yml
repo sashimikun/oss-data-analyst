@@ -1,0 +1,42 @@
+name: GitHubRepos
+type: fact_table
+table: main.github_repos
+grain: one row per repository
+description: GitHub repository metadata including stars, forks, and open issues counts.
+common_questions:
+  - How many stars does the repo have?
+  - What is the default branch?
+  - When was the repo last updated?
+
+dimensions:
+  - name: repo_full_name
+    sql: repo_full_name
+    type: string
+    description: Full name of the repository (owner/repo)
+
+  - name: default_branch
+    sql: default_branch
+    type: string
+    description: The default branch of the repository
+
+time_dimensions:
+  - name: updated_at
+    sql: updated_at
+    type: time
+    description: Timestamp of the last update
+
+measures:
+  - name: stars
+    sql: stars
+    type: sum
+    description: Number of stars
+
+  - name: forks
+    sql: forks
+    type: sum
+    description: Number of forks
+
+  - name: open_issues_count
+    sql: open_issues
+    type: sum
+    description: Number of open issues

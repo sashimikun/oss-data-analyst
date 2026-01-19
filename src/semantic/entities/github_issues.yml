@@ -1,0 +1,85 @@
+name: GitHubIssues
+type: fact_table
+table: main.github_issues
+grain: one row per issue
+description: GitHub issues (and PRs as issues) with details on state, author, labels, and timing.
+common_questions:
+  - How many open issues are there?
+  - Who filed the most issues?
+  - What are the top labels?
+  - Median time to close an issue?
+
+dimensions:
+  - name: repo
+    sql: repo
+    type: string
+    description: Repository name
+
+  - name: id
+    sql: id
+    type: number
+    description: Issue ID
+
+  - name: number
+    sql: number
+    type: number
+    description: Issue number
+
+  - name: title
+    sql: title
+    type: string
+    description: Issue title
+
+  - name: state
+    sql: state
+    type: string
+    description: State of the issue (open/closed)
+
+  - name: author
+    sql: author
+    type: string
+    description: Username of the issue author
+
+  - name: labels_json
+    sql: labels_json
+    type: string
+    description: JSON array of labels applied to the issue
+
+  - name: is_pr
+    sql: is_pr
+    type: boolean
+    description: Whether this issue is a pull request
+
+time_dimensions:
+  - name: created_at
+    sql: created_at
+    type: time
+    description: Timestamp when the issue was created
+
+  - name: closed_at
+    sql: closed_at
+    type: time
+    description: Timestamp when the issue was closed
+
+measures:
+  - name: count
+    sql: id
+    type: count_distinct
+    description: Total number of issues
+
+  - name: open_count
+    sql: CASE WHEN state = 'open' THEN 1 ELSE 0 END
+    type: sum
+    description: Number of open issues
+
+  - name: closed_count
+    sql: CASE WHEN state = 'closed' THEN 1 ELSE 0 END
+    type: sum
+    description: Number of closed issues
+
+joins:
+  - target_entity: GitHubRepos
+    relationship: many_to_one
+    join_columns:
+      from: repo
+      to: repo_full_name

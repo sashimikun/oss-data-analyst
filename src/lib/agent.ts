@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { stepCountIs, convertToModelMessages, streamText, tool } from "ai";
+import { stepCountIs, convertToModelMessages, tool, ToolLoopAgent } from "ai";
 import z from "zod";
 import { ExecuteSQL } from "./tools/execute-sqlite";
 import { createSandbox } from "./tools/sandbox";
@@ -72,25 +72,34 @@ export async function runAgent({
   const { sandbox, stop } = await createSandbox();
   const { tools: bashTools } = await createSemanticBashTools(sandbox);
 
-  const result = streamText({
+  // Initialize the ToolLoopAgent which handles the iterative tool execution loop.
+  // It will automatically call tools and feed results back to the model until completion.
+  const agent = new ToolLoopAgent({
     model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
-    stopWhen: [
-      (ctx) =>
-        ctx.steps.some((step) =>
-          step.toolResults?.some((t) => t.toolName === "FinalizeReport")
-        ),
-      stepCountIs(100),
-    ],
+    instructions: SYSTEM_PROMPT,
     tools: {
       bash: bashTools.bash,
       ExecuteSQL,
       FinalizeReport,
     },
+    // Custom stopping conditions to prevent infinite loops and ensure proper termination
+    stopWhen: [
+      // Stop if FinalizeReport has been called in any previous step
+      (ctx: any) =>
+        ctx.steps.some((step: any) =>
+          step.toolResults?.some((t: any) => t.toolName === "FinalizeReport")
+        ),
+      // Hard limit on steps to prevent runaway costs
+      stepCountIs(100),
+    ],
+    // Ensure sandbox is cleaned up when the agent finishes
     onFinish: async () => {
       await stop();
     },
+  });
+
+  const result = agent.stream({
+    messages: await convertToModelMessages(messages),
   });
 
   return result;
@@ -110,22 +119,26 @@ export async function runAgentWithSandbox({
   const { sandbox, stop } = await createSandbox();
   const { tools: bashTools } = await createSemanticBashTools(sandbox);
 
-  const result = streamText({
+  // Initialize the ToolLoopAgent for the sandbox version (cleanup handled by caller)
+  const agent = new ToolLoopAgent({
     model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
-    stopWhen: [
-      (ctx) =>
-        ctx.steps.some((step) =>
-          step.toolResults?.some((t) => t.toolName === "FinalizeReport")
-        ),
-      stepCountIs(100),
-    ],
+    instructions: SYSTEM_PROMPT,
     tools: {
       bash: bashTools.bash,
       ExecuteSQL,
       FinalizeReport,
     },
+    stopWhen: [
+      (ctx: any) =>
+        ctx.steps.some((step: any) =>
+          step.toolResults?.some((t: any) => t.toolName === "FinalizeReport")
+        ),
+      stepCountIs(100),
+    ],
+  });
+
+  const result = agent.stream({
+    messages: await convertToModelMessages(messages),
   });
 
   return { result, sandbox, stop };

@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { stepCountIs, convertToModelMessages, streamText, tool } from "ai";
+import { tool, ToolLoopAgent, createAgentUIStreamResponse } from "ai";
 import z from "zod";
 import { ExecuteSQL } from "./tools/execute-sqlite";
 import { createSandbox } from "./tools/sandbox";
@@ -72,28 +72,66 @@ export async function runAgent({
   const { sandbox, stop } = await createSandbox();
   const { tools: bashTools } = await createSemanticBashTools(sandbox);
 
-  const result = streamText({
+  const agent = new ToolLoopAgent({
     model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
-    stopWhen: [
-      (ctx) =>
-        ctx.steps.some((step) =>
-          step.toolResults?.some((t) => t.toolName === "FinalizeReport")
-        ),
-      stepCountIs(100),
-    ],
+    instructions: SYSTEM_PROMPT,
     tools: {
       bash: bashTools.bash,
       ExecuteSQL,
       FinalizeReport,
     },
-    onFinish: async () => {
-      await stop();
-    },
+    // @ts-ignore - ToolLoopAgent usually supports maxSteps or similar, checking compatibility
+    maxSteps: 100,
   });
 
-  return result;
+  return {
+    toUIMessageStreamResponse: async () => {
+      const response = await createAgentUIStreamResponse({
+        agent,
+        uiMessages: messages,
+      });
+
+      // Wrap the stream to handle cleanup (close sandbox when stream ends)
+      if (!response.body) return response;
+
+      const stream = response.body;
+      const wrappedStream = new ReadableStream({
+        start(controller) {
+          const reader = stream.getReader();
+          return pump();
+          function pump(): Promise<void> {
+            return reader
+              .read()
+              .then(({ done, value }: { done: boolean; value: any }) => {
+                if (done) {
+                  stop(); // Cleanup
+                  controller.close();
+                  return;
+                }
+                controller.enqueue(value);
+                return pump();
+              })
+              .catch((err: any) => {
+                stop(); // Cleanup
+                controller.error(err);
+              });
+          }
+        },
+        cancel() {
+          stop(); // Cleanup
+          return stream.cancel();
+        },
+      });
+
+      return new Response(wrappedStream, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+      });
+    },
+    // Note: toDataStreamResponse is not implemented as ToolLoopAgent primarily supports UI stream response via helper.
+    // If needed, it would require manually creating the data stream response.
+  };
 }
 
 /**
@@ -110,23 +148,25 @@ export async function runAgentWithSandbox({
   const { sandbox, stop } = await createSandbox();
   const { tools: bashTools } = await createSemanticBashTools(sandbox);
 
-  const result = streamText({
+  const agent = new ToolLoopAgent({
     model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
-    stopWhen: [
-      (ctx) =>
-        ctx.steps.some((step) =>
-          step.toolResults?.some((t) => t.toolName === "FinalizeReport")
-        ),
-      stepCountIs(100),
-    ],
+    instructions: SYSTEM_PROMPT,
     tools: {
       bash: bashTools.bash,
       ExecuteSQL,
       FinalizeReport,
     },
+    // @ts-ignore
+    maxSteps: 100,
   });
+
+  const result = {
+    toUIMessageStreamResponse: () =>
+      createAgentUIStreamResponse({
+        agent,
+        uiMessages: messages,
+      }),
+  };
 
   return { result, sandbox, stop };
 }

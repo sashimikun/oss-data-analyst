@@ -1,5 +1,5 @@
 import type { UIMessage } from "ai";
-import { stepCountIs, convertToModelMessages, streamText, tool } from "ai";
+import { stepCountIs, convertToModelMessages, tool, ToolLoopAgent } from "ai";
 import z from "zod";
 import { ExecuteSQL } from "./tools/execute-sqlite";
 import { createSandbox } from "./tools/sandbox";
@@ -72,10 +72,14 @@ export async function runAgent({
   const { sandbox, stop } = await createSandbox();
   const { tools: bashTools } = await createSemanticBashTools(sandbox);
 
-  const result = streamText({
+  const agent = new ToolLoopAgent({
     model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
+    instructions: SYSTEM_PROMPT,
+    tools: {
+      bash: bashTools.bash,
+      ExecuteSQL,
+      FinalizeReport,
+    },
     stopWhen: [
       (ctx) =>
         ctx.steps.some((step) =>
@@ -83,17 +87,14 @@ export async function runAgent({
         ),
       stepCountIs(100),
     ],
-    tools: {
-      bash: bashTools.bash,
-      ExecuteSQL,
-      FinalizeReport,
-    },
     onFinish: async () => {
       await stop();
     },
   });
 
-  return result;
+  return agent.stream({
+    messages: await convertToModelMessages(messages),
+  });
 }
 
 /**
@@ -110,10 +111,14 @@ export async function runAgentWithSandbox({
   const { sandbox, stop } = await createSandbox();
   const { tools: bashTools } = await createSemanticBashTools(sandbox);
 
-  const result = streamText({
+  const agent = new ToolLoopAgent({
     model,
-    system: SYSTEM_PROMPT,
-    messages: await convertToModelMessages(messages),
+    instructions: SYSTEM_PROMPT,
+    tools: {
+      bash: bashTools.bash,
+      ExecuteSQL,
+      FinalizeReport,
+    },
     stopWhen: [
       (ctx) =>
         ctx.steps.some((step) =>
@@ -121,11 +126,10 @@ export async function runAgentWithSandbox({
         ),
       stepCountIs(100),
     ],
-    tools: {
-      bash: bashTools.bash,
-      ExecuteSQL,
-      FinalizeReport,
-    },
+  });
+
+  const result = await agent.stream({
+    messages: await convertToModelMessages(messages),
   });
 
   return { result, sandbox, stop };

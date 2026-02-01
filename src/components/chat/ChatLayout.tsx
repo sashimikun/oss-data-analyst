@@ -29,7 +29,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Action, Actions } from "@/components/ai-elements/actions";
 import { Fragment, useState } from "react";
-import { useChat } from "@ai-sdk/react";
+import { useClaudeChat } from "@/hooks/use-claude-chat";
 import { Response } from "@/components/ai-elements/response";
 import { CopyIcon, GlobeIcon, RefreshCcwIcon } from "lucide-react";
 import {
@@ -63,7 +63,7 @@ const ChatBotDemo = () => {
   const [input, setInput] = useState("");
   const [model, setModel] = useState<string>(models[0].value);
   const [webSearch, setWebSearch] = useState(false);
-  const { messages, sendMessage, status, regenerate } = useChat();
+  const { messages, sendMessage, status, regenerate } = useClaudeChat();
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
@@ -165,34 +165,28 @@ const ChatBotDemo = () => {
                           <ReasoningContent>{part.text}</ReasoningContent>
                         </Reasoning>
                       );
+                    case "tool-invocation":
+                      return (
+                        <Tool key={`${message.id}-${i}`}>
+                          <ToolHeader type={part.type} state={part.state} />
+                          <ToolContent>
+                            <ToolInput input={part.input} />
+                            <ToolOutput
+                              output={
+                                part.output ? (
+                                  <Response>
+                                    {typeof part.output === "string"
+                                      ? part.output
+                                      : JSON.stringify(part.output, null, 2)}
+                                  </Response>
+                                ) : null
+                              }
+                              errorText={part.errorText}
+                            />
+                          </ToolContent>
+                        </Tool>
+                      );
                     default:
-                      if (
-                        part.type.startsWith("tool-") &&
-                        "state" in part &&
-                        "input" in part
-                      ) {
-                        const toolType = part.type as `tool-${string}`;
-                        return (
-                          <Tool key={`${message.id}-${i}`}>
-                            <ToolHeader type={toolType} state={part.state} />
-                            <ToolContent>
-                              <ToolInput input={part.input} />
-                              <ToolOutput
-                                output={
-                                  part.output ? (
-                                    <Response>
-                                      {typeof part.output === "string"
-                                        ? part.output
-                                        : JSON.stringify(part.output, null, 2)}
-                                    </Response>
-                                  ) : null
-                                }
-                                errorText={part.errorText}
-                              />
-                            </ToolContent>
-                          </Tool>
-                        );
-                      }
                       return null;
                   }
                 })}

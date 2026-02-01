@@ -4,7 +4,7 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import type { UIMessage } from "ai";
+import type { UIMessage } from "@/types/chat";
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps, HTMLAttributes } from "react";
 

@@ -1,0 +1,79 @@
+name: GitHub Issues
+type: fact_table
+table: github_issues
+grain: one row per issue
+description: >-
+  GitHub issues (and pull requests) with status, author, and timing information.
+  Note that GitHub's issues API returns both issues and pull requests. Use is_pr to distinguish.
+common_questions:
+  - How many open issues are there?
+  - Who filed the most issues?
+  - What are the most common labels?
+  - What is the average time to close an issue?
+  - Show me issues created in the last month.
+  - Which issues have been open the longest?
+
+dimensions:
+  - name: id
+    sql: id
+    type: number
+    description: Unique identifier
+
+  - name: number
+    sql: number
+    type: number
+    description: Issue number (e.g. #123)
+
+  - name: title
+    sql: title
+    type: string
+    description: Title of the issue
+
+  - name: state
+    sql: state
+    type: string
+    description: State of the issue (open, closed)
+
+  - name: author
+    sql: author
+    type: string
+    description: GitHub username of the author
+
+  - name: repo
+    sql: repo
+    type: string
+    description: Repository name (owner/repo)
+
+  - name: labels_json
+    sql: labels_json
+    type: string
+    description: JSON array of label names applied to the issue
+
+  - name: is_pr
+    sql: is_pr
+    type: number
+    description: 1 if this is a Pull Request, 0 if it is a regular Issue
+
+time_dimensions:
+  - name: created_at
+    sql: created_at
+    type: time
+    description: Creation timestamp
+
+  - name: closed_at
+    sql: closed_at
+    type: time
+    description: Closing timestamp
+
+measures:
+  - name: count
+    sql: id
+    type: count
+    description: Total count of issues/PRs
+
+joins:
+  - target_entity: GitHub Repos
+    relationship: many_to_one
+    join_columns:
+      from: repo
+      to: repo_full_name
